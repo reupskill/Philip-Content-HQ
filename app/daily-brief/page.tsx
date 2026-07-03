@@ -1,8 +1,7 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState } from "react";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 import { useRouter } from "next/navigation";
 
 type Example = { n: number; title: string; what: string; signal: string };
@@ -85,8 +84,7 @@ export default function DailyBriefPage() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher />
+      <PageHeader title="Daily Brief" subtitle="Today's conviction, five examples, and a ready-to-publish draft." />
       <main className="gen-shell-wide">
         <section className="panel brief-header">
           <div>

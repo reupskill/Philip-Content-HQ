@@ -1,9 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 
 function SubstackGenerator() {
   const searchParams = useSearchParams();
@@ -95,8 +94,7 @@ function SubstackGenerator() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher idea={idea} />
+      <PageHeader title="Substack Essay" subtitle="Full long-form editions, structured and ready to publish." />
       <main className="gen-shell">
         <section className="panel gen-inputs">
           <h2>Substack Essay</h2>

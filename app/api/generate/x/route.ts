@@ -3,19 +3,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/auth";
 import { xSystemPrompt, xUserMessage, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
+import { extractJSON } from "@/lib/extract-json";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const client = new Anthropic();
-
-function extractJSON(text: string): unknown {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("No JSON found in response");
-  return JSON.parse(text.slice(start, end + 1));
-}
 
 const VALID_FORMATS = ["one-liner", "3-tweet-thread", "5-tweet-thread", "founder-lesson", "growth-lesson"];
 
@@ -34,23 +28,31 @@ export async function POST(request: NextRequest) {
   const format = VALID_FORMATS.includes(body.format) ? body.format : "one-liner";
   if (!idea) return NextResponse.json({ error: "idea is required" }, { status: 400 });
 
-  const message = await client.messages.create({
-    model: getModel(),
-    max_tokens: 1500,
-    system: [{ type: "text", text: xSystemPrompt(), cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: xUserMessage({
-      idea,
-      format,
-      context: body.context || undefined,
-    }) }],
-  });
+  let message;
+  try {
+    message = await client.messages.create({
+      model: getModel(),
+      max_tokens: 2048,
+      system: [{ type: "text", text: xSystemPrompt(), cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: xUserMessage({
+        idea,
+        format,
+        context: body.context || undefined,
+      }) }],
+    });
+  } catch (err) {
+    console.error("Claude API error:", err);
+    const msg = err instanceof Anthropic.APIError ? `Claude API error (${err.status})` : "Generation failed";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
 
   const raw = message.content.find((b) => b.type === "text")?.text ?? "";
   let parsed: unknown;
   try {
     parsed = extractJSON(raw);
-  } catch {
-    return NextResponse.json({ error: "Model returned invalid JSON", raw }, { status: 502 });
+  } catch (err) {
+    console.error("JSON extraction failed:", err, "\nRaw:", raw.slice(0, 500));
+    return NextResponse.json({ error: "Model returned invalid JSON. Please try again." }, { status: 502 });
   }
 
   const saved = await saveContent({

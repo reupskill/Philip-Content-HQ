@@ -3,19 +3,13 @@ import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/auth";
 import { linkedinSystemPrompt, linkedinUserMessage, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
+import { extractJSON } from "@/lib/extract-json";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
 const client = new Anthropic();
-
-function extractJSON(text: string): unknown {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("No JSON found in response");
-  return JSON.parse(text.slice(start, end + 1));
-}
 
 export async function POST(request: NextRequest) {
   const email = await requireAuth(request).catch(() => null);
@@ -33,26 +27,34 @@ export async function POST(request: NextRequest) {
 
   const variations = Math.min(3, Math.max(1, Number(body.variations) || 3));
 
-  const message = await client.messages.create({
-    model: getModel(),
-    max_tokens: 3000,
-    system: [{ type: "text", text: linkedinSystemPrompt(), cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: linkedinUserMessage({
-      idea,
-      story: String(body.story || "").trim() || undefined,
-      audience: String(body.audience || "").trim() || undefined,
-      lesson: String(body.lesson || "").trim() || undefined,
-      context: String(body.context || "").trim() || undefined,
-      variations,
-    }) }],
-  });
+  let message;
+  try {
+    message = await client.messages.create({
+      model: getModel(),
+      max_tokens: 4096,
+      system: [{ type: "text", text: linkedinSystemPrompt(), cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: linkedinUserMessage({
+        idea,
+        story: String(body.story || "").trim() || undefined,
+        audience: String(body.audience || "").trim() || undefined,
+        lesson: String(body.lesson || "").trim() || undefined,
+        context: String(body.context || "").trim() || undefined,
+        variations,
+      }) }],
+    });
+  } catch (err) {
+    console.error("Claude API error:", err);
+    const msg = err instanceof Anthropic.APIError ? `Claude API error (${err.status})` : "Generation failed";
+    return NextResponse.json({ error: msg }, { status: 502 });
+  }
 
   const raw = message.content.find((b) => b.type === "text")?.text ?? "";
   let parsed: unknown;
   try {
     parsed = extractJSON(raw);
-  } catch {
-    return NextResponse.json({ error: "Model returned invalid JSON", raw }, { status: 502 });
+  } catch (err) {
+    console.error("JSON extraction failed:", err, "\nRaw:", raw.slice(0, 500));
+    return NextResponse.json({ error: "Model returned invalid JSON. Please try again." }, { status: 502 });
   }
 
   const saved = await saveContent({

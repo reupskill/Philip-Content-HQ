@@ -1,9 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 import type { ContentRow } from "@/lib/supabase";
 
 type Angle = { title: string; description: string; platform?: string };
@@ -135,8 +134,7 @@ function ContentRiverApp() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher />
+      <PageHeader title="Content River" subtitle="One piece of writing. Endless ideas." />
       <main className="gen-shell-wide">
         <div className="panel" style={{ marginBottom: 0 }}>
           <div className="tabs" style={{ marginBottom: 0 }}>

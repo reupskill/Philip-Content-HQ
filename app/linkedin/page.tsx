@@ -1,9 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 
 type Variation = {
   angle: string;
@@ -86,8 +85,7 @@ function LinkedInGenerator() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher idea={idea} />
+      <PageHeader title="LinkedIn" subtitle="Generate 1-3 post variations from one idea, each with a different angle." />
       <main className="gen-shell">
         <section className="panel gen-inputs">
           <h2>LinkedIn Post</h2>
