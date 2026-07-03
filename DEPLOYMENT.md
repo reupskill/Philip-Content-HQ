@@ -6,7 +6,7 @@ The repo doubles as a web platform: a private content-generation app that drafts
 
 1. **Anthropic API key** — create one at [platform.claude.com](https://platform.claude.com) → API Keys.
 2. **Resend account** (free) — create one at [resend.com](https://resend.com) → API Keys. This sends the sign-in emails.
-   - Important: Resend's default sender (`onboarding@resend.dev`) can only deliver to the email address that owns the Resend account. To let **both** allowed users sign in, verify a domain in Resend (Domains → Add Domain) and set `EMAIL_FROM` to an address on it, e.g. `Philip Content HQ <hq@uvest.ng>`.
+   - Important: Resend's default sender (`onboarding@resend.dev`) can only deliver to the email address that owns the Resend account. To let **both** allowed users sign in, verify a domain in Resend (Domains → Add Domain) and set `EMAIL_FROM` to an address on it, e.g. `Philip Content HQ <hq@uvest.team>`.
 3. **An auth secret** — run `openssl rand -base64 32` (or any long random string).
 
 ## Deploy steps
@@ -17,10 +17,10 @@ The repo doubles as a web platform: a private content-generation app that drafts
    | Name | Value |
    |---|---|
    | `ANTHROPIC_API_KEY` | your Claude API key |
-   | `ALLOWED_EMAILS` | the two allowed emails, comma-separated, e.g. `adeneyos@gmail.com,philip@uvest.ng` |
+   | `ALLOWED_EMAILS` | `philipbabs29@gmail.com,ceocontent@uvest.team` |
    | `AUTH_SECRET` | the random secret you generated |
    | `RESEND_API_KEY` | your Resend API key |
-   | `EMAIL_FROM` | (after domain verification) e.g. `Philip Content HQ <hq@uvest.ng>` |
+   | `EMAIL_FROM` | (after domain verification) e.g. `Philip Content HQ <hq@uvest.team>` |
 
 3. Click **Deploy**. That's it — visit the deployment URL, enter an allowed email, click the link in the inbox, and start generating.
 
