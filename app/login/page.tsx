@@ -1,34 +1,36 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-function LoginForm() {
-  const searchParams = useSearchParams();
-  const expired = searchParams.get("error") === "expired";
-
+export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<
-    { kind: "idle" } | { kind: "sending" } | { kind: "sent"; message: string } | { kind: "error"; message: string }
-  >({ kind: "idle" });
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus({ kind: "sending" });
+    setError("");
+    setSubmitting(true);
     try {
-      const res = await fetch("/api/auth/request", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setStatus({ kind: "error", message: data.error || "Something went wrong." });
-      } else {
-        setStatus({ kind: "sent", message: data.message });
+      if (res.ok) {
+        router.replace("/");
+        router.refresh();
+        return;
       }
+      const data = await res.json().catch(() => null);
+      setError(data?.error || "Sign-in failed. Please try again.");
     } catch {
-      setStatus({ kind: "error", message: "Network error. Please try again." });
+      setError("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -40,16 +42,10 @@ function LoginForm() {
         </h1>
         <p className="sub">
           Founder-led content engine for Dr. Philip Babalola, CEO of Uvest.
-          Enter your email to receive a sign-in link.
+          Sign in to start generating.
         </p>
 
-        {expired && status.kind === "idle" && (
-          <div className="notice err">
-            That sign-in link is invalid or has expired. Request a new one below.
-          </div>
-        )}
-        {status.kind === "sent" && <div className="notice ok">{status.message}</div>}
-        {status.kind === "error" && <div className="notice err">{status.message}</div>}
+        {error && <div className="notice err">{error}</div>}
 
         <form onSubmit={submit}>
           <div className="field">
@@ -64,19 +60,23 @@ function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          <button className="btn-primary" type="submit" disabled={status.kind === "sending"}>
-            {status.kind === "sending" ? "Sending…" : "Email me a sign-in link"}
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              required
+              autoComplete="current-password"
+              placeholder="Shared team password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button className="btn-primary" type="submit" disabled={submitting}>
+            {submitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
       </div>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
   );
 }

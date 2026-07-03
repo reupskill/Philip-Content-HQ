@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, SESSION_COOKIE } from "@/lib/auth";
 
-const PUBLIC_PATHS = ["/login", "/api/auth/request", "/api/auth/verify"];
+const PUBLIC_PATHS = ["/login", "/api/auth/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   }
 
   const token = request.cookies.get(SESSION_COOKIE)?.value;
-  const email = token ? await verifyToken(token, "session") : null;
+  const email = token ? await verifyToken(token) : null;
 
   if (!email) {
     if (pathname.startsWith("/api/")) {
