@@ -5,9 +5,10 @@ The repo doubles as a web platform: a private content-generation app that drafts
 ## What you need before starting
 
 1. **Anthropic API key** — create one at [platform.claude.com](https://platform.claude.com) → API Keys.
-2. **Resend account** (free) — create one at [resend.com](https://resend.com) → API Keys. This sends the sign-in emails.
-   - Important: Resend's default sender (`onboarding@resend.dev`) can only deliver to the email address that owns the Resend account. To let **both** allowed users sign in, verify a domain in Resend (Domains → Add Domain) and set `EMAIL_FROM` to an address on it, e.g. `Philip Content HQ <hq@uvest.team>`.
-3. **An auth secret** — run `openssl rand -base64 32` (or any long random string).
+2. **An auth secret** — run `openssl rand -base64 32` (or any long random string).
+3. **A shared password** — anything long that both users will type to sign in.
+
+No email service is needed. Sign-in is by allowed email + a shared password.
 
 ## Deploy steps
 
@@ -18,18 +19,18 @@ The repo doubles as a web platform: a private content-generation app that drafts
    |---|---|
    | `ANTHROPIC_API_KEY` | your Claude API key |
    | `ALLOWED_EMAILS` | `philipbabs29@gmail.com,ceocontent@uvest.team` |
+   | `LOGIN_PASSWORD` | the shared password both users will type |
    | `AUTH_SECRET` | the random secret you generated |
-   | `RESEND_API_KEY` | your Resend API key |
-   | `EMAIL_FROM` | (after domain verification) e.g. `Philip Content HQ <hq@uvest.team>` |
 
-3. Click **Deploy**. That's it — visit the deployment URL, enter an allowed email, click the link in the inbox, and start generating.
+3. Click **Deploy**. That's it — visit the deployment URL, sign in with an allowed email + the shared password, and start generating.
 
 ## How access control works
 
-- Only emails in `ALLOWED_EMAILS` receive sign-in links; anyone else gets a generic "if that email has access…" message (no way to probe the list).
-- Sign-in links are signed tokens that expire in 15 minutes; sessions last 30 days in an httpOnly cookie.
-- Removing an email from `ALLOWED_EMAILS` (and redeploying) revokes that person's access immediately — sessions are re-checked against the allowlist on every request.
-- All pages and APIs are protected by middleware; only `/login` and the two auth endpoints are public.
+- To sign in you need **both** an email in `ALLOWED_EMAILS` **and** the `LOGIN_PASSWORD`. Anyone missing either gets a single generic "Incorrect email or password" message.
+- A successful sign-in sets a signed session cookie that lasts 30 days (httpOnly).
+- Removing an email from `ALLOWED_EMAILS` (and redeploying) revokes that person immediately — sessions are re-checked against the allowlist on every request.
+- To rotate access for everyone, change `LOGIN_PASSWORD` and redeploy.
+- All pages and APIs are protected by middleware; only `/login` and the login endpoint are public.
 
 ## How generation works
 
