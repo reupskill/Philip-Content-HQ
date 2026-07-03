@@ -74,6 +74,11 @@ const IconCalendar = () => (
     <line x1="3" y1="10" x2="21" y2="10"/>
   </svg>
 );
+const IconActivity = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+  </svg>
+);
 const IconSettings = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3"/>
@@ -102,6 +107,7 @@ const LIBRARY = [
   { href: "/content-bank", label: "Content Bank", icon: IconBank },
   { href: "/training", label: "Training Examples", icon: IconStar },
   { href: "/calendar", label: "Content Calendar", icon: IconCalendar },
+  { href: "/activity", label: "Activity Log", icon: IconActivity },
 ];
 
 export default function Sidebar() {
