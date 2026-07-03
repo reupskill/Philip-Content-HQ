@@ -1,3 +1,4 @@
+import { NextRequest } from "next/server";
 import { SignJWT, jwtVerify } from "jose";
 
 const SESSION_COOKIE = "phq_session";
@@ -51,6 +52,13 @@ export async function verifyToken(token: string): Promise<string | null> {
   } catch {
     return null;
   }
+}
+
+export async function requireAuth(request: NextRequest): Promise<string> {
+  const token = request.cookies.get(SESSION_COOKIE)?.value;
+  const email = token ? await verifyToken(token) : null;
+  if (!email) throw new Error("Unauthorized");
+  return email;
 }
 
 export { SESSION_COOKIE };
