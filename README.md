@@ -4,6 +4,13 @@ The content headquarters for **Dr. Philip Babalola (PB)** — founder & CEO of U
 
 This repo turns his documented point of view into founder-led content: LinkedIn posts, X threads, Substack essays, newsletters, video scripts, Instagram carousels, and realtor training material — all in his authentic voice, all traceable to things he actually said, did, and built.
 
+It works two ways:
+
+1. **A private web platform** (Next.js, deployable to Vercel) — sign in with one of two allowed emails, pick a platform and topic, and the Claude API drafts in PB's voice, streamed live. See [`DEPLOYMENT.md`](./DEPLOYMENT.md).
+2. **Claude Code slash commands** — open the repo in Claude Code and use `/linkedin`, `/substack`, `/content-week`, etc.
+
+Both are driven by the same knowledge base, so updating the markdown files updates everything.
+
 ## How it works
 
 ```
@@ -14,6 +21,8 @@ content/          ← drafts and finished pieces, one folder per platform
 calendar/         ← the rolling content calendar
 .claude/commands/ ← slash commands that generate content in his voice
 CLAUDE.md         ← operating instructions for Claude (the content team's brain)
+app/, lib/        ← the Next.js web platform (auth + Claude generation API)
+DEPLOYMENT.md     ← how to deploy the platform to Vercel
 ```
 
 ## Quick start (with Claude Code)
