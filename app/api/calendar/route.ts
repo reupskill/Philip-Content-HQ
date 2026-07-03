@@ -2,19 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/auth";
 import { voiceConfigForCalendar, getModel } from "@/lib/prompt";
+import { extractJSON } from "@/lib/extract-json";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 180;
 
 const client = new Anthropic();
-
-function extractJSON(text: string): unknown {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-  if (start === -1 || end === -1) throw new Error("No JSON found in response");
-  return JSON.parse(text.slice(start, end + 1));
-}
 
 export async function POST(request: NextRequest) {
   const email = await requireAuth(request).catch(() => null);
@@ -54,7 +48,7 @@ Generate all 30 days. Return ONLY the JSON object.`;
 
   const message = await client.messages.create({
     model: getModel(),
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
   });
