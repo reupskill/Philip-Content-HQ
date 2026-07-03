@@ -1,9 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 
 type Tweet = { text: string; characterCount: number };
 type XOutput = { format: string; tweets: Tweet[] };
@@ -76,8 +75,7 @@ function XGenerator() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher idea={idea} />
+      <PageHeader title="X / Twitter" subtitle="One-liners, threads, and founder takes — built in your voice." />
       <main className="gen-shell">
         <section className="panel gen-inputs">
           <h2>X / Twitter</h2>

@@ -1,9 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
 import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import TopBar from "@/components/TopBar";
-import PlatformSwitcher from "@/components/PlatformSwitcher";
 
 type VideoScript = {
   hook: string;
@@ -78,8 +77,7 @@ function VideoGenerator() {
 
   return (
     <>
-      <TopBar />
-      <PlatformSwitcher idea={idea} />
+      <PageHeader title="Video Scripts" subtitle="Turn one observation into a complete short-form video script." />
       <main className="gen-shell">
         <section className="panel gen-inputs">
           <h2>Video Script</h2>

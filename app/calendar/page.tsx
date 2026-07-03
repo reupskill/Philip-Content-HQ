@@ -1,8 +1,9 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import TopBar from "@/components/TopBar";
 
 const PLATFORM_ROUTES: Record<string, string> = {
   linkedin: "/linkedin",
@@ -76,7 +77,7 @@ export default function CalendarPage() {
 
   return (
     <>
-      <TopBar />
+      <PageHeader title="Content Calendar" subtitle="Your 30-day content plan across all platforms." />
       <main className="dashboard-shell">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>

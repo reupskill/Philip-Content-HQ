@@ -1,7 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
+
 import { useEffect, useState } from "react";
-import TopBar from "@/components/TopBar";
 import type { ContentRow } from "@/lib/supabase";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -77,7 +78,7 @@ export default function TrainingPage() {
 
   return (
     <>
-      <TopBar />
+      <PageHeader title="Training Examples" subtitle="The examples the AI learns from — your voice on record." />
       <main className="dashboard-shell">
         <div>
           <h1>Training Voice Library</h1>

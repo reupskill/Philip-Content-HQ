@@ -1,7 +1,8 @@
 "use client";
 
+import PageHeader from "@/components/PageHeader";
+
 import { useEffect, useState } from "react";
-import TopBar from "@/components/TopBar";
 import type { ContentRow } from "@/lib/supabase";
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -88,7 +89,7 @@ export default function ContentBankPage() {
 
   return (
     <>
-      <TopBar />
+      <PageHeader title="Content Bank" subtitle="Your personal content library" />
       <main className="dashboard-shell">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1>Content Bank</h1>
