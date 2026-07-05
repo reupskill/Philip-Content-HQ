@@ -16,14 +16,31 @@ const PLATFORM_LABELS: Record<string, string> = {
 
 const ALL_PLATFORMS = ["all", "video", "linkedin", "x", "substack", "content-river", "daily-brief"];
 
-const STATUS_COLORS: Record<ContentStatus, string> = {
-  draft: "status-draft",
-  pending: "status-pending",
-  shot: "status-shot",
-  published: "status-published",
-};
+// ── Platform-specific data types ──────────────────────────────────
 
-// ── Per-platform content viewers ───────────────────────────────
+type VideoData = {
+  hook: string; story: string; insight: string; close: string;
+  caption: string; hashtags: string[]; onScreenText: string[];
+  brollIdeas: string[]; musicMood: string; recordingDirection: string;
+};
+type LinkedInVariation = { angle: string; hook: string; content: string; post?: string };
+type LinkedInData = { variations: LinkedInVariation[] };
+type XTweet = { text: string; characterCount: number };
+type XData = { format: string; tweets: XTweet[] };
+type RiverItem = { title: string; description: string; platform?: string };
+type ContentRiverData = {
+  angles: RiverItem[]; pullQuotes: string[]; videoHooks: string[];
+  linkedinAngles: RiverItem[]; xIdeas: RiverItem[];
+  substackAngles: RiverItem[]; relatedTopics: RiverItem[];
+};
+type BriefExample = { n: number; title: string; what: string; signal: string };
+type DailyBriefData = { theme: string; conviction: string; examples: BriefExample[]; newsletterDraft: string };
+
+function safeParse<T>(content: string): T | null {
+  try { return JSON.parse(content) as T; } catch { return null; }
+}
+
+// ── Shared viewer components ──────────────────────────────────────
 
 function CopyBtn({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -56,118 +73,114 @@ function CVBlock({ label, text, list }: { label: string; text?: string; list?: s
   );
 }
 
-function VideoViewer({ data }: { data: Record<string, unknown> }) {
-  const hashtags = Array.isArray(data.hashtags) ? (data.hashtags as string[]) : [];
-  const onScreenText = Array.isArray(data.onScreenText) ? (data.onScreenText as string[]) : [];
-  const brollIdeas = Array.isArray(data.brollIdeas) ? (data.brollIdeas as string[]) : [];
+// ── Per-platform viewers ──────────────────────────────────────────
+
+function VideoViewer({ data }: { data: VideoData }) {
   return (
     <div className="cv-sections">
-      <CVBlock label="Hook" text={String(data.hook || "")} />
-      <CVBlock label="Story" text={String(data.story || "")} />
-      <CVBlock label="Insight" text={String(data.insight || "")} />
-      <CVBlock label="Close / CTA" text={String(data.close || "")} />
+      <CVBlock label="Hook" text={data.hook} />
+      <CVBlock label="Story" text={data.story} />
+      <CVBlock label="Insight" text={data.insight} />
+      <CVBlock label="Close / CTA" text={data.close} />
       <div className="cv-block">
         <div className="cv-block-head">
           <span className="cv-label">Caption</span>
-          {!!data.caption && <CopyBtn text={String(data.caption)} />}
+          {data.caption && <CopyBtn text={data.caption} />}
         </div>
-        <p className="cv-text">{String(data.caption || "")}</p>
-        {hashtags.length > 0 && (
+        <p className="cv-text">{data.caption}</p>
+        {data.hashtags?.length > 0 && (
           <div className="hashtags" style={{ marginTop: 8 }}>
-            {hashtags.map((h) => <span key={h} className="hashtag">#{h}</span>)}
+            {data.hashtags.map((h) => <span key={h} className="hashtag">#{h}</span>)}
           </div>
         )}
       </div>
-      {onScreenText.length > 0 && <CVBlock label="On-Screen Text" list={onScreenText} />}
-      {brollIdeas.length > 0 && <CVBlock label="B-Roll Ideas" list={brollIdeas} />}
-      {!!data.musicMood && <CVBlock label="Music Mood" text={String(data.musicMood)} />}
-      {!!data.recordingDirection && <CVBlock label="Recording Direction" text={String(data.recordingDirection)} />}
+      {data.onScreenText?.length > 0 && <CVBlock label="On-Screen Text" list={data.onScreenText} />}
+      {data.brollIdeas?.length > 0 && <CVBlock label="B-Roll Ideas" list={data.brollIdeas} />}
+      {data.musicMood && <CVBlock label="Music Mood" text={data.musicMood} />}
+      {data.recordingDirection && <CVBlock label="Recording Direction" text={data.recordingDirection} />}
     </div>
   );
 }
 
-function LinkedInViewer({ data }: { data: Record<string, unknown> }) {
-  const variations = Array.isArray(data.variations) ? data.variations as Array<Record<string, unknown>> : [];
+function LinkedInViewer({ data }: { data: LinkedInData }) {
   return (
     <div className="cv-sections">
-      {variations.map((v, i) => (
-        <div key={i} className="cv-block">
-          <div className="cv-block-head">
-            <span className="cv-label">{String(v.angle || `Variation ${i + 1}`)}</span>
-            <CopyBtn text={String(v.content || v.post || "")} />
-          </div>
-          {!!v.hook && <p className="cv-hook">{String(v.hook)}</p>}
-          <p className="cv-text" style={{ marginTop: v.hook ? 8 : 0 }}>{String(v.content || v.post || "")}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function XViewer({ data }: { data: Record<string, unknown> }) {
-  const tweets = Array.isArray(data.tweets) ? data.tweets as Array<Record<string, unknown>> : [];
-  return (
-    <div className="cv-sections">
-      <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
-        Format: {String(data.format || "tweet")}
-      </div>
-      {tweets.map((t, i) => (
-        <div key={i} className="cv-block">
-          <div className="cv-block-head">
-            <span className="cv-label">{tweets.length > 1 ? `Tweet ${i + 1}` : "Tweet"}</span>
-            <span style={{ fontSize: 11, color: Number(t.characterCount) > 260 ? "var(--error)" : "var(--muted)", marginLeft: 8 }}>
-              {t.characterCount}/280
-            </span>
-            <CopyBtn text={String(t.text || "")} />
-          </div>
-          <p className="cv-text">{String(t.text || "")}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ContentRiverViewer({ data }: { data: Record<string, unknown> }) {
-  const [open, setOpen] = useState<Record<string, boolean>>({ angles: true });
-  const sections = [
-    { key: "angles", label: "Content Angles", items: data.angles },
-    { key: "linkedinAngles", label: "LinkedIn Angles", items: data.linkedinAngles },
-    { key: "xIdeas", label: "X Ideas", items: data.xIdeas },
-    { key: "substackAngles", label: "Substack Angles", items: data.substackAngles },
-    { key: "relatedTopics", label: "Related Topics", items: data.relatedTopics },
-  ];
-  const pullQuotes = Array.isArray(data.pullQuotes) ? data.pullQuotes as string[] : [];
-  const videoHooks = Array.isArray(data.videoHooks) ? data.videoHooks as string[] : [];
-  return (
-    <div className="cv-sections">
-      {sections.map(({ key, label, items }) => {
-        if (!Array.isArray(items) || items.length === 0) return null;
-        const typedItems = items as Array<Record<string, unknown>>;
+      {data.variations.map((v, i) => {
+        const body = v.content || v.post || "";
         return (
-          <div key={key} className="cv-block">
-            <button className="cv-section-toggle" onClick={() => setOpen(o => ({ ...o, [key]: !o[key] }))}>
-              <span className="cv-label">{label}</span>
-              <span style={{ fontSize: 11, color: "var(--muted)" }}>{typedItems.length} items</span>
-              <span className="cv-chevron">{open[key] ? "▲" : "▼"}</span>
-            </button>
-            {open[key] && (
-              <div className="cv-river-items">
-                {typedItems.map((item, i) => (
-                  <div key={i} className="cv-river-item">
-                    <div className="cv-river-title">{String(item.title || "")}</div>
-                    {!!item.description && <div className="cv-river-desc">{String(item.description)}</div>}
-                    {!!item.platform && <span className="platform-badge" style={{ marginTop: 4, display: "inline-block" }}>{String(item.platform)}</span>}
-                  </div>
-                ))}
-              </div>
-            )}
+          <div key={i} className="cv-block">
+            <div className="cv-block-head">
+              <span className="cv-label">{v.angle || `Variation ${i + 1}`}</span>
+              <CopyBtn text={body} />
+            </div>
+            {v.hook && <p className="cv-hook">{v.hook}</p>}
+            <p className="cv-text" style={{ marginTop: v.hook ? 8 : 0 }}>{body}</p>
           </div>
         );
       })}
-      {pullQuotes.length > 0 && (
+    </div>
+  );
+}
+
+function XViewer({ data }: { data: XData }) {
+  return (
+    <div className="cv-sections">
+      <div style={{ fontSize: 11, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
+        Format: {data.format || "tweet"}
+      </div>
+      {data.tweets.map((t, i) => (
+        <div key={i} className="cv-block">
+          <div className="cv-block-head">
+            <span className="cv-label">{data.tweets.length > 1 ? `Tweet ${i + 1}` : "Tweet"}</span>
+            <span style={{ fontSize: 11, color: t.characterCount > 260 ? "var(--error)" : "var(--muted)", marginLeft: 8 }}>
+              {t.characterCount}/280
+            </span>
+            <CopyBtn text={t.text} />
+          </div>
+          <p className="cv-text">{t.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RiverSection({ label, items, defaultOpen }: { label: string; items: RiverItem[]; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(!!defaultOpen);
+  if (items.length === 0) return null;
+  return (
+    <div className="cv-block">
+      <button className="cv-section-toggle" onClick={() => setOpen((o) => !o)}>
+        <span className="cv-label">{label}</span>
+        <span style={{ fontSize: 11, color: "var(--muted)" }}>{items.length} items</span>
+        <span className="cv-chevron">{open ? "▲" : "▼"}</span>
+      </button>
+      {open && (
+        <div className="cv-river-items">
+          {items.map((item, i) => (
+            <div key={i} className="cv-river-item">
+              <div className="cv-river-title">{item.title}</div>
+              {item.description && <div className="cv-river-desc">{item.description}</div>}
+              {item.platform && <span className="platform-badge" style={{ marginTop: 4, display: "inline-block" }}>{item.platform}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ContentRiverViewer({ data }: { data: ContentRiverData }) {
+  return (
+    <div className="cv-sections">
+      <RiverSection label="Content Angles" items={data.angles ?? []} defaultOpen />
+      <RiverSection label="LinkedIn Angles" items={data.linkedinAngles ?? []} />
+      <RiverSection label="X Ideas" items={data.xIdeas ?? []} />
+      <RiverSection label="Substack Angles" items={data.substackAngles ?? []} />
+      <RiverSection label="Related Topics" items={data.relatedTopics ?? []} />
+      {(data.pullQuotes ?? []).length > 0 && (
         <div className="cv-block">
           <div className="cv-block-head"><span className="cv-label">Pull Quotes</span></div>
-          {pullQuotes.map((q, i) => (
+          {data.pullQuotes.map((q, i) => (
             <div key={i} className="cv-pull-quote">
               <span className="cv-pull-mark">"</span>
               <p>{q}</p>
@@ -176,11 +189,11 @@ function ContentRiverViewer({ data }: { data: Record<string, unknown> }) {
           ))}
         </div>
       )}
-      {videoHooks.length > 0 && (
+      {(data.videoHooks ?? []).length > 0 && (
         <div className="cv-block">
           <div className="cv-block-head"><span className="cv-label">Video Hooks</span></div>
           <ul className="cv-list">
-            {videoHooks.map((h, i) => <li key={i}>{h}</li>)}
+            {data.videoHooks.map((h, i) => <li key={i}>{h}</li>)}
           </ul>
         </div>
       )}
@@ -188,31 +201,30 @@ function ContentRiverViewer({ data }: { data: Record<string, unknown> }) {
   );
 }
 
-function DailyBriefViewer({ data }: { data: Record<string, unknown> }) {
-  const examples = Array.isArray(data.examples) ? data.examples as Array<Record<string, unknown>> : [];
+function DailyBriefViewer({ data }: { data: DailyBriefData }) {
   return (
     <div className="cv-sections">
-      {!!data.theme && <CVBlock label="Theme" text={String(data.theme)} />}
-      {!!data.conviction && <CVBlock label="Conviction" text={String(data.conviction)} />}
-      {examples.length > 0 && (
+      {data.theme && <CVBlock label="Theme" text={data.theme} />}
+      {data.conviction && <CVBlock label="Conviction" text={data.conviction} />}
+      {(data.examples ?? []).length > 0 && (
         <div className="cv-block">
-          <div className="cv-block-head"><span className="cv-label">Examples ({examples.length})</span></div>
-          {examples.map((e, i) => (
+          <div className="cv-block-head"><span className="cv-label">Examples ({data.examples.length})</span></div>
+          {data.examples.map((e, i) => (
             <div key={i} className="cv-brief-example">
-              <div className="cv-brief-example-title">#{e.n} — {String(e.title || "")}</div>
-              {!!e.what && <p className="cv-brief-field"><span>What:</span> {String(e.what)}</p>}
-              {!!e.signal && <p className="cv-brief-field"><span>Signal:</span> {String(e.signal)}</p>}
+              <div className="cv-brief-example-title">#{e.n} — {e.title}</div>
+              {e.what && <p className="cv-brief-field"><span>What:</span> {e.what}</p>}
+              {e.signal && <p className="cv-brief-field"><span>Signal:</span> {e.signal}</p>}
             </div>
           ))}
         </div>
       )}
-      {!!data.newsletterDraft && (
+      {data.newsletterDraft && (
         <div className="cv-block">
           <div className="cv-block-head">
             <span className="cv-label">Newsletter Draft</span>
-            <CopyBtn text={String(data.newsletterDraft)} />
+            <CopyBtn text={data.newsletterDraft} />
           </div>
-          <p className="cv-text" style={{ whiteSpace: "pre-wrap" }}>{String(data.newsletterDraft)}</p>
+          <p className="cv-text" style={{ whiteSpace: "pre-wrap" }}>{data.newsletterDraft}</p>
         </div>
       )}
     </div>
@@ -233,27 +245,44 @@ function SubstackViewer({ content }: { content: string }) {
 
 function ContentViewer({ platform, content }: { platform: string; content: string }) {
   if (platform === "substack") return <SubstackViewer content={content} />;
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(content) as Record<string, unknown>;
-  } catch {
-    return <div className="cv-block"><p className="cv-text" style={{ whiteSpace: "pre-wrap" }}>{content}</p></div>;
-  }
+
   switch (platform) {
-    case "video": return <VideoViewer data={parsed} />;
-    case "linkedin": return <LinkedInViewer data={parsed} />;
-    case "x": return <XViewer data={parsed} />;
-    case "content-river": return <ContentRiverViewer data={parsed} />;
-    case "daily-brief": return <DailyBriefViewer data={parsed} />;
-    default: return (
-      <div className="cv-block">
-        <p className="cv-text" style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify(parsed, null, 2)}</p>
-      </div>
-    );
+    case "video": {
+      const data = safeParse<VideoData>(content);
+      return data ? <VideoViewer data={data} /> : <RawViewer content={content} />;
+    }
+    case "linkedin": {
+      const data = safeParse<LinkedInData>(content);
+      return data ? <LinkedInViewer data={data} /> : <RawViewer content={content} />;
+    }
+    case "x": {
+      const data = safeParse<XData>(content);
+      return data ? <XViewer data={data} /> : <RawViewer content={content} />;
+    }
+    case "content-river": {
+      const data = safeParse<ContentRiverData>(content);
+      return data ? <ContentRiverViewer data={data} /> : <RawViewer content={content} />;
+    }
+    case "daily-brief": {
+      const data = safeParse<DailyBriefData>(content);
+      return data ? <DailyBriefViewer data={data} /> : <RawViewer content={content} />;
+    }
+    default:
+      return <RawViewer content={content} />;
   }
 }
 
-// ── Status selector ─────────────────────────────────────────────
+function RawViewer({ content }: { content: string }) {
+  let display = content;
+  try { display = JSON.stringify(JSON.parse(content), null, 2); } catch { /* use raw */ }
+  return (
+    <div className="cv-block">
+      <p className="cv-text" style={{ whiteSpace: "pre-wrap", fontFamily: "monospace", fontSize: 12 }}>{display}</p>
+    </div>
+  );
+}
+
+// ── Status selector ───────────────────────────────────────────────
 
 function StatusSelect({ itemId, current, onUpdate }: { itemId: string; current: ContentStatus; onUpdate: (s: ContentStatus) => void }) {
   const [saving, setSaving] = useState(false);
@@ -286,7 +315,7 @@ function StatusSelect({ itemId, current, onUpdate }: { itemId: string; current: 
   );
 }
 
-// ── Main page ───────────────────────────────────────────────────
+// ── Main page ─────────────────────────────────────────────────────
 
 export default function ContentBankPage() {
   const [items, setItems] = useState<ContentRow[]>([]);
@@ -341,7 +370,6 @@ export default function ContentBankPage() {
       <PageHeader title="Content Bank" subtitle={`${items.length} pieces saved`} />
       <main className="dashboard-shell">
 
-        {/* Platform filter */}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           <div className="filter-bar">
             {ALL_PLATFORMS.map((p) => (
@@ -355,13 +383,13 @@ export default function ContentBankPage() {
             ))}
           </div>
           <div className="filter-bar" style={{ marginLeft: "auto" }}>
-            {["all", ...STATUS_OPTIONS].map((s) => (
+            {(["all", ...STATUS_OPTIONS] as const).map((s) => (
               <button
                 key={s}
                 className={`filter-btn${statusFilter === s ? " active" : ""}`}
                 onClick={() => setStatusFilter(s)}
               >
-                {s === "all" ? "All Status" : STATUS_LABELS[s as ContentStatus]}
+                {s === "all" ? "All Status" : STATUS_LABELS[s]}
               </button>
             ))}
           </div>
