@@ -69,7 +69,7 @@ function VideoViewer({ data }: { data: Record<string, unknown> }) {
       <div className="cv-block">
         <div className="cv-block-head">
           <span className="cv-label">Caption</span>
-          {data.caption && <CopyBtn text={String(data.caption)} />}
+          {!!data.caption && <CopyBtn text={String(data.caption)} />}
         </div>
         <p className="cv-text">{String(data.caption || "")}</p>
         {hashtags.length > 0 && (
@@ -80,8 +80,8 @@ function VideoViewer({ data }: { data: Record<string, unknown> }) {
       </div>
       {onScreenText.length > 0 && <CVBlock label="On-Screen Text" list={onScreenText} />}
       {brollIdeas.length > 0 && <CVBlock label="B-Roll Ideas" list={brollIdeas} />}
-      {data.musicMood && <CVBlock label="Music Mood" text={String(data.musicMood)} />}
-      {data.recordingDirection && <CVBlock label="Recording Direction" text={String(data.recordingDirection)} />}
+      {!!data.musicMood && <CVBlock label="Music Mood" text={String(data.musicMood)} />}
+      {!!data.recordingDirection && <CVBlock label="Recording Direction" text={String(data.recordingDirection)} />}
     </div>
   );
 }
@@ -96,7 +96,7 @@ function LinkedInViewer({ data }: { data: Record<string, unknown> }) {
             <span className="cv-label">{String(v.angle || `Variation ${i + 1}`)}</span>
             <CopyBtn text={String(v.content || v.post || "")} />
           </div>
-          {v.hook && <p className="cv-hook">{String(v.hook)}</p>}
+          {!!v.hook && <p className="cv-hook">{String(v.hook)}</p>}
           <p className="cv-text" style={{ marginTop: v.hook ? 8 : 0 }}>{String(v.content || v.post || "")}</p>
         </div>
       ))}
@@ -155,8 +155,8 @@ function ContentRiverViewer({ data }: { data: Record<string, unknown> }) {
                 {typedItems.map((item, i) => (
                   <div key={i} className="cv-river-item">
                     <div className="cv-river-title">{String(item.title || "")}</div>
-                    {item.description && <div className="cv-river-desc">{String(item.description)}</div>}
-                    {item.platform && <span className="platform-badge" style={{ marginTop: 4, display: "inline-block" }}>{String(item.platform)}</span>}
+                    {!!item.description && <div className="cv-river-desc">{String(item.description)}</div>}
+                    {!!item.platform && <span className="platform-badge" style={{ marginTop: 4, display: "inline-block" }}>{String(item.platform)}</span>}
                   </div>
                 ))}
               </div>
@@ -192,21 +192,21 @@ function DailyBriefViewer({ data }: { data: Record<string, unknown> }) {
   const examples = Array.isArray(data.examples) ? data.examples as Array<Record<string, unknown>> : [];
   return (
     <div className="cv-sections">
-      {data.theme && <CVBlock label="Theme" text={String(data.theme)} />}
-      {data.conviction && <CVBlock label="Conviction" text={String(data.conviction)} />}
+      {!!data.theme && <CVBlock label="Theme" text={String(data.theme)} />}
+      {!!data.conviction && <CVBlock label="Conviction" text={String(data.conviction)} />}
       {examples.length > 0 && (
         <div className="cv-block">
           <div className="cv-block-head"><span className="cv-label">Examples ({examples.length})</span></div>
           {examples.map((e, i) => (
             <div key={i} className="cv-brief-example">
               <div className="cv-brief-example-title">#{e.n} — {String(e.title || "")}</div>
-              {e.what && <p className="cv-brief-field"><span>What:</span> {String(e.what)}</p>}
-              {e.signal && <p className="cv-brief-field"><span>Signal:</span> {String(e.signal)}</p>}
+              {!!e.what && <p className="cv-brief-field"><span>What:</span> {String(e.what)}</p>}
+              {!!e.signal && <p className="cv-brief-field"><span>Signal:</span> {String(e.signal)}</p>}
             </div>
           ))}
         </div>
       )}
-      {data.newsletterDraft && (
+      {!!data.newsletterDraft && (
         <div className="cv-block">
           <div className="cv-block-head">
             <span className="cv-label">Newsletter Draft</span>
