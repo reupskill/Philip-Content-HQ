@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { dailyBriefSystemPrompt, dailyBriefUserMessage, getDailyTheme, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
 import { extractJSON } from "@/lib/extract-json";
+import { saveActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -47,6 +48,8 @@ export async function POST(request: NextRequest) {
     generated_content: JSON.stringify(parsed),
     raw_inputs: { date: today.toISOString(), theme },
   });
+
+  saveActivity({ user_email: email, action: "generate_daily_brief", content_id: saved.id, details: { theme } }).catch(() => {});
 
   return NextResponse.json({ id: saved.id, content: parsed });
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PageHeader from "@/components/PageHeader";
 import type { ContentRow } from "@/lib/supabase";
+import { extractTitle } from "@/lib/content-utils";
 
 const PLATFORM_LABELS: Record<string, string> = {
   video: "Video",
@@ -29,25 +30,6 @@ function getStatusBadge(platform: string): { label: string; cls: string } {
   return { label: "Draft", cls: "draft" };
 }
 
-function previewTitle(content: string): string {
-  try {
-    const parsed = JSON.parse(content);
-    return findFirstString(parsed).slice(0, 80);
-  } catch {
-    return content.replace(/[{"\n]/g, " ").trim().slice(0, 80);
-  }
-}
-
-function findFirstString(obj: unknown): string {
-  if (typeof obj === "string" && obj.trim().length > 8) return obj.trim();
-  if (Array.isArray(obj)) {
-    for (const v of obj) { const s = findFirstString(v); if (s) return s; }
-  }
-  if (typeof obj === "object" && obj !== null) {
-    for (const v of Object.values(obj)) { const s = findFirstString(v); if (s) return s; }
-  }
-  return "";
-}
 
 function groupByDay(items: ContentRow[]) {
   const groups: { key: string; label: string; items: ContentRow[] }[] = [];
@@ -196,7 +178,7 @@ export default function Dashboard() {
               {recent.map((item) => {
                 const { label, cls } = getStatusBadge(item.platform);
                 const dotCls = PLATFORM_DOT_CLASS[item.platform] || "default";
-                const title = previewTitle(item.generated_content);
+                const title = extractTitle(item.platform, item.generated_content);
                 const platformLabel = PLATFORM_LABELS[item.platform] || item.platform;
                 const date = new Date(item.created_at);
                 const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -239,7 +221,7 @@ export default function Dashboard() {
                   <div className="log-items">
                     {group.items.map((item) => (
                       <div key={item.id} className="log-item">
-                        <span style={{ minWidth: 0 }}>{previewTitle(item.generated_content)}</span>
+                        <span style={{ minWidth: 0 }}>{extractTitle(item.platform, item.generated_content)}</span>
                       </div>
                     ))}
                   </div>

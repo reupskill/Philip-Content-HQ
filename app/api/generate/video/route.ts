@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { videoSystemPrompt, videoUserMessage, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
 import { extractJSON } from "@/lib/extract-json";
+import { saveActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
     generated_content: JSON.stringify(parsed),
     raw_inputs: { idea, story: body.story, audience: body.audience, lesson: body.lesson, context: body.context, tone: body.tone },
   });
+
+  saveActivity({ user_email: email, action: "generate_video", content_id: saved.id, details: { idea } }).catch(() => {});
 
   return NextResponse.json({ id: saved.id, content: parsed });
 }

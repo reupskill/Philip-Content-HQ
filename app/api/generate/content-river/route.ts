@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { contentRiverSystemPrompt, contentRiverUserMessage, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
 import { extractJSON } from "@/lib/extract-json";
+import { saveActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
     generated_content: JSON.stringify(parsed),
     raw_inputs: { sourceContent: sourceContent.slice(0, 500), originalPlatform: body.originalPlatform },
   });
+
+  saveActivity({ user_email: email, action: "generate_content_river", content_id: saved.id }).catch(() => {});
 
   return NextResponse.json({ id: saved.id, content: parsed });
 }

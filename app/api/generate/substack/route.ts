@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { requireAuth } from "@/lib/auth";
 import { substackSystemPrompt, substackUserMessage, getModel } from "@/lib/prompt";
 import { saveContent } from "@/lib/db";
+import { saveActivity } from "@/lib/activity";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
             generated_content: accumulated,
             raw_inputs: { idea, story: body.story, audience: body.audience, lesson: body.lesson, context: body.context },
           });
+          saveActivity({ user_email: email, action: "generate_substack", content_id: saved.id, details: { idea } }).catch(() => {});
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", id: saved.id })}\n\n`));
         } else {
           controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: "done", id: null })}\n\n`));
